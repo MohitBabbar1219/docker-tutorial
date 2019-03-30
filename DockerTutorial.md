@@ -16,3 +16,19 @@
     - `docker exec -it <container-id> <command>` Will run the command in the container. `-it` will run redis-cli in interactive mode which will expose the redis-cli repl to the host machine.
     - `docker exec <container-id> <command>` Will run the redis-cli but we will not get access to the redis-cli.
     - `docker exec <container-id> sh` Will get us full terminal access of the container.
+
+### Creating our own images
+- `Dockerfile` holds the configurations to define how our container should behave.
+- Flow of a `Dockerfile`:
+    1. Specify a base image
+    2. Run some commands to install additional programs
+    3. Specify a command to run on container startup
+- `Dockerfile` == Being given a computer with no OS and being told to install Chrome.
+- Refer to `redis-server/Dockerfile`. We create an `alpine` image with redis installed. A redis server is started on running this image.
+- `docker build .` Will take the `Dockerfile` in the directory that the command was run, and generate an image out of it. But the built image can only be referenced by its hash.
+- `docker build -t <docker-id>/<project-name>:<version> .` Will build the image and tag it so that we don't need to call its hash to use it every time.  Technically, just the `<version>` is the tag.
+- Another, not preferred, way of building images is by manually building them. For example, the redis server image can be built using the following steps:
+    1. `docker run -it alpine bash`
+    2. `apk add --update redis`
+    3. `exit`
+    4. `docker commit -c 'CMD ["redis-server"] <alpine-container-id>` Output is the id of our new image. This image will have same configurations as the one built with `Dockerfile`.
