@@ -32,3 +32,15 @@
     2. `apk add --update redis`
     3. `exit`
     4. `docker commit -c 'CMD ["redis-server"] <alpine-container-id>` Output is the id of our new image. This image will have same configurations as the one built with `Dockerfile`.
+
+### Creating a simple node project
+- We will try to build a simple express server and dockerize it. Refer to `simpleweb` directory for this web project.
+- Now, the default `alpine` image that we have been using before will not just simply work. We will have to install `node` and `npm` on it or use a different image altogether which already has these things installed.
+- We are going to use a `node` image for this project. Try to look for an image tagged `alpine`. `alpine`, in the docker world, is a term for an image that is as small and compact as possible.
+- By default, the working directory will be the root directory of the container. We don't want to work in the root directory. So we can explicitly specify `WORKDIR /usr/app` so that all the commands will be executed in this directory. 
+- Now that we've got the correct image, it still does'nt have access to our project files. We need to `COPY` the stuff we need the container to have from our host machine to the container.
+- Next we need to install the project dependencies. `RUN` the command `npm install` to do that.
+- The project is now set up in the container. Specify the final command which runs our node server: `CMD ["npm", "start"]`.
+- `docker build -t <docker-id>/simpleweb .` The `Dockerfile` has everything we need for now, so we build it. Note that the `latest` tag is implicitly appended if not explicitly specified.
+- `docker run -p 8080:8080 <docker-id>/simpleweb` The server will run on port `8080` of the container. If we go to `localhost:8080` on our host machine, it will not work as the port `8080` is not exposed to the host machine by default. To map the container's port to host's port, run the `docker run` command with `-p <port-number-on-host-machine>:<port-of-container>`. This will route incoming requests to `port on local host` to the `port inside the container`.  
+- Great, you got your app running. But whenever you make a change in your project, however small it may be, the complete building process will happen all over again. The `npm install` command in itself can take ages if the project is significantly large. So, we need to break down the copying of files such that `package.json` is copied first and then `npm install` command is made to run. After the dependencies are installed, only then do we want to copy the project files. What this will achieve us is that the `package.json` file is gonna remain the same which means that dependencies are gonna remain the same, so, once built, the image will use the cached image till this step for all the other builds to come and will take a significantly lesser time to copy just the project files.
