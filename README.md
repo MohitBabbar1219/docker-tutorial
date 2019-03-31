@@ -77,4 +77,31 @@
     - `unless-stopped` - Similar to always, except that when the container is stopped (manually or otherwise), it is not restarted even after Docker daemon restarts.
 - The above restart policies can be used with `docker run` command with `--restart` flag or can be specified in the `docker-compose.yml` file, we're going to do the latter.
 
-
+### Use Docker in production grade environment
+- Workflow to publish an app is a closed loop that starts with development, then testing and then deployment and at some later point of time, development again.
+- Github repository will hold all the code that we write and eventually deploy to some outside service. Our github repo is going to have two different type of branches:
+    1. Feature branch - A development branch in which we are going to add the code or change it in order to update our app. Once we've pushed the changes to the feature branch, we'll raise a pull request and merge them over to the master branch. Once we're done with the pull request, two things are going to occur:
+        1. A workflow will take our application and push it to a service called Travis CI, it will run a set of tests that we write.
+        2. Then, Travis CI is going to push our project to our hosting service, say AWS.
+    2. Master branch - Will represent the clean, working copy of our codebase. Any changes made to the master branch will eventually, automatically, be deployed out to our hosting provider (such as AWS, GCP, etc.).
+- Where does Docker fit in this workflow? Docker is not a requirement for using this workflow, but it is going to make a lot of these tasks a lot easier. Keep in mind that Docker is not our primary focus here.
+- We will be working with a react app in this chapter. Dockerfile is going to be similar to the Dockerfile in previous projects, there's just one subtle difference, we're going to have to Dockerfiles in this project, namely, `DockerfileDev` (for development environment) and `Dockerfile` (for production environment). To build an image with a custom named Docker file, use `-f` tag to specify the name, command:<br/> `docker build -f <dockerfile-name> .`
+- Do you remember that we used to `COPY` all the code and build it in the container to run our projects? This won't work anymore in our development environment as it will require us to build the image again and again whenever we make a change in our app's code, however small it may be. We need to abandon this approach of copying code to container and building images.
+- Luckily, Docker gives us a feature called `volumes`. We can now provide a reference to the directory which holds all the code, to the container such that the container can access that folder on the host machine as if it is its own.
+- `docker run -p <host-port>:<container-port> -v /usr/app/node_modules -v $(pwd):/usr/app <image-id>`<br/> We'll break it down:
+    1. `-v $(pwd):/usr/app` Will map the current working directory that this command is executed in, to `/usr/app` of the container. This means that the content of current working directory of host machine will reflect in `/usr/app` directory of the container
+    2. `-v /usr/app/node_modules` Will tell docker that don't try to map this folder from the host machine. Notice that there is no `:` present in this tag, this allows us to skip it's mapping. This allows us to not keep the `node_modules` folder on host machine.
+- The only thing not elegant about this solution is the unusually long and ugly `docker run` command. Even though we have only a single image this time, we can still use `docker-compose` (refer `frontend/docker-compose.yml`) and make it a workaround for the not-so-elegant `docker run` command.
+- We created a service called `react-app` in our `docker-compose.yml` file to run our app in a development environment. Now, we can either create another service which will solely be responsible for running our app's tests or we can run<br/> `docker exec -it <container-id> bash`<br/> and then run<br/>`npm run test`<br/> inside the container's shell to get the interactive testing window.
+- When we build our app for the production environment, the development server that we use in the development environment goes away and all that is left is a js file and other static html and css files. To serve these files in a production environment we'll need another server. We are going to use the `nginx` server as a production server.
+- This will be interesting because now we need `node:alpine` image to build our project and `nginx` image to run it in production environment. Looks like we are in a situation where two base images will be nice to have.
+- What we are going to do is we are going to build a `Dockerfile` (refer `frontend/Dockerfile`) which has a multi-step build process. It will have two different blocks of configuration:
+    1. Build phase
+        1. `COPY` the `package.json` file.
+        2. Install dependencies
+        3. `RUN` npm run build
+    2. Run phase
+        1. Use `nginx`
+        2. Copy over the result of Build phase
+        3. Start `nginx`, this does'nt need an explicit command.
+- We can now build and run the image with `Dockerfile` and this app will now be production ready as `nginx` is a production ready server.
