@@ -77,7 +77,7 @@
     - `unless-stopped` - Similar to always, except that when the container is stopped (manually or otherwise), it is not restarted even after Docker daemon restarts.
 - The above restart policies can be used with `docker run` command with `--restart` flag or can be specified in the `docker-compose.yml` file, we're going to do the latter.
 
-### Use Docker in production grade environment
+### Using Docker in production grade environment
 - Workflow to publish an app is a closed loop that starts with development, then testing and then deployment and at some later point of time, development again.
 - Github repository will hold all the code that we write and eventually deploy to some outside service. Our github repo is going to have two different type of branches:
     1. Feature branch - A development branch in which we are going to add the code or change it in order to update our app. Once we've pushed the changes to the feature branch, we'll raise a pull request and merge them over to the master branch. Once we're done with the pull request, two things are going to occur:
