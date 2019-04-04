@@ -8,4 +8,6 @@ COPY . .
 RUN npm run build
 
 FROM nginx
+# This is used by the deployment service to expose our app
+EXPOSE 80
 COPY --from=builder /usr/app/build /usr/share/nginx/html

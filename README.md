@@ -104,4 +104,16 @@
         1. Use `nginx`
         2. Copy over the result of Build phase
         3. Start `nginx`, this does'nt need an explicit command.
-- We can now build and run the image with `Dockerfile` and this app will now be production ready as `nginx` is a production ready server.
+- We can now build and run the image with `Dockerfile` and this app will be production ready as `nginx` is a production ready server.
+
+### CI and CD with AWS
+- We are going to integrate out github repo (refer to [react-docker](https://github.com/MohitBabbar1219/docker-react)) with Travis CI which will test our app and deploy it to AWS.
+- Sign up for Travis CI and link your repo to it.
+- Now, whenever you push your changes to your github repo, Travis CI will automatically start the build process, provided you have `.travis.yml` file (refer `.travis.yml` in the repo) present in your repo.
+- Flow of `.travis.yml` file:
+    1. `sudo: required`<br/> Will make the process happen with su permissions
+    2. `services`<br/> Will specify the service that we are going to need which will facilitate project building
+    3. `before_install`<br/> Will run the prerequisite commands
+    4. `script`<br/> Will hold the main commands to test or build the project. If any of these fails, the pipeline will fail.
+    5. `deploy`<br/> Will hold the configuration and commands to deploy the project. 
+- Moving on to AWS, Elastic beanstalk is the easiest way to get started with production docker instances. It provides a load balancer out of the box and makes deployment of docker containers a breeze.
