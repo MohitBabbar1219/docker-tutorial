@@ -144,3 +144,13 @@
     1. `VAR_NAME=<VALUE>` Sets a variable in the container at runtime.
     2. `VAR_NAME` Sets a variable in the container at runtime but the value is taken from your computer.
     3. `.env` File will extract them from the file specified.
+
+### CI workflow for a multi-container setup
+- Workflow of a multi-container setup:
+    1. Push code to github
+    2. Travis automatically pulls the repo, builds a test image and tests the code
+    3. Travis builds the prod images
+    4. Travis pushes built prod images to docker hub
+    5. Travis pushes the project to AWS EB
+    6. EB pulls the images from docker hub and deploys
+- Refer `.travis.yml` for the CI setup for this project. Also note that we are using the production `Dockerfile`s for building the images now.

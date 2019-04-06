@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mohitbabbar1219/client-test -f ./client/DockerfileDev ./client
+
+script:
+  - docker run mohitbabbar1219/client-test npm test -- --coverage
+
+after_success:
+  - docker build -t mohitbabbar1219/multi-client ./client
+  - docker build -t mohitbabbar1219/multi-nginx ./nginx
+  - docker build -t mohitbabbar1219/multi-server ./server
+  - docker build -t mohitbabbar1219/multi-worker ./worker
+  - export "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push mohitbabbar1219/multi-client
+  - docker push mohitbabbar1219/multi-nginx
+  - docker push mohitbabbar1219/multi-server
+  - docker push mohitbabbar1219/multi-worker
