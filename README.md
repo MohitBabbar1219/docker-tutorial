@@ -25,7 +25,7 @@
     3. Specify a command to run on container start up
 - `Dockerfile` == Being given a computer with no OS and being told to install Chrome.
 - Refer to `redis-server/Dockerfile`. We create an `alpine` image with redis installed. A redis server is started on running this image.
-- `docker build .`<br/> Will take the `Dockerfile` in the directory in which the command was executed, and generate an image out of it. But the built image can only be referenced by its hash.
+- `docker build .`<br/> Will take the `Dockerfile` in the directory in which the command was executed, and generate an image out of it. But the built image can only be referenced by its hash. The `.` that we specify at the end of the command is the build context.
 - `docker build -t <docker-id>/<project-name>:<version> .`<br/> Will build the image and tag it so that we don't need to call its hash to use it every time.  Technically, just the `<version>` is the tag.
 - Another, not preferred, way of building images is by manually building them. For example, the redis server image can be built using the following steps:
     1. `docker run -it alpine bash`
@@ -117,3 +117,30 @@
     4. `script`<br/> Will hold the main commands to test or build the project. If any of these fails, the pipeline will fail.
     5. `deploy`<br/> Will hold the configuration and commands to deploy the project. 
 - Moving on to AWS, Elastic beanstalk is the easiest way to get started with production docker instances. It provides a load balancer out of the box and makes deployment of docker containers a breeze.
+- `deploy` section in the `.travis.yml` file will take care of the deployment, just remember to `EXPOSE 80` port in your Dockerfile as this is the default port that our sever will be listening on.
+
+### Building a multi-container app
+- For this section, we are going to over-complicate a simple fibonacci sequence calculator.
+- Components of our app (All the source code can be found in `complex` directory):
+    1. `nginx` server
+    2. `react` server
+    3. `express` server
+    4. `redis` in-memory data store
+    6. `worker` watcher that updates redis store when something new happens
+    5. `postgres` database
+- Development Dockerfile(s) for our setup (refer to `<service-name>/DockerfileDev`):
+    1. `client` is a react app. We will be using the same Dockerfile flow as the previous react app.
+    2. `server` and `worker` are node apps. Dockerfile(s) for these apps will also be similar to the react app Dockerfile.
+- `docker-compose.yml` file for this setup is going to be interesting. Flow of this file (refer to `complex/docker-compose.yml`):
+    1. `version`
+    2. `services`:
+        - `postgres`: What image to use?
+        - `redis`: What image to use?
+        - `server`: Specify `build`, `volumes` and `environment` variables.
+        - `client`: Specify `build` and `volumes`.
+        - `worker`: Specify `build` and `volumes`.
+        - `nginx`: Specify `build`, `restart` and `ports`.
+- Environment variables in `docker-compose.yml`:
+    1. `VAR_NAME=<VALUE>` Sets a variable in the container at runtime.
+    2. `VAR_NAME` Sets a variable in the container at runtime but the value is taken from your computer.
+    3. `.env` File will extract them from the file specified.
