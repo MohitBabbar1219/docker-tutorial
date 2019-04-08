@@ -154,3 +154,17 @@
     5. Travis pushes the project to AWS EB
     6. EB pulls the images from docker hub and deploys
 - Refer `.travis.yml` for the CI setup for this project. Also note that we are using the production `Dockerfile`s for building the images now.
+
+### Deploying multiple containers to AWS
+- Deploying single container was straight forward. To deploy a multi-container project, we have to put the configurations of all the containers in one single file for AWS to know, we'll be calling that file `Dockerrun.aws.json`.
+- This `Dockerrun.aws.json` will tell elastic beanstalk where to pull the images from, what resources to allocate to each container, how to setup port mappings and other vital information. Elastic Beanstalk also works with ECS behind the scenes, so we need to define task definitions (refer docs for task definitions) in the file.
+- Format of the `Dockerrun.aws.json` file:
+    1. `AWSEBDockerrunVersion`
+    2. `containerDefinitions`:
+        1. `name`: Name of the service, eg. `client`
+        2. `image`: Our image on docker hub
+        3. `hostname`: Address at which all the other services will communicate with this service. Eg. `client`
+        4. `essential`: Boolean which decides if the current service is as essential as terminating the other services if this one goes down. Eg. our `nginx` server could be marked essential.
+- We need to create a new application and environment, appropriate to our use case, on elastic beanstalk for our app.
+- AWS provides two other different services for hosting DBs and in-memory data stores, namely AWS relational database service and AWS elastic cache, respectively.
+- Since, RDS and EC are different services, we need to define a security group to allow them to communicate to each other.
